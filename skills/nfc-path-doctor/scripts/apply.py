@@ -341,10 +341,10 @@ def run(args: object, lang: str) -> int:
             out.write("  " + describe_step(st, lang) + "\n")
         out.write(n.msg(lang, "apply_dry_hint") + "\n")
         return 0
-    out.write(n.msg(lang, "apply_run_header", n=len(steps)) + "\n")
     undo_out = getattr(args, "undo_out") or (None if getattr(args, "undo") else
                                              os.path.join(os.path.dirname(os.path.abspath(plan_path)), "undo.json"))
     n.guard_output(undo_out)   # fail before anything is renamed, not after
+    out.write(n.msg(lang, "apply_run_header", n=len(steps)) + "\n")
     done: list[Step] = []
     try:
         for st in steps:
