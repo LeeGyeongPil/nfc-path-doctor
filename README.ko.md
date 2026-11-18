@@ -5,7 +5,7 @@
 파일·폴더 이름의 유니코드 정규화(NFC·NFD) 불일치를 찾아 안전하게 고치는 에이전트 스킬입니다. "분명히 있는 파일을 못 찾는다", "같은 한글·일본어·악센트 파일이 git 에 두 번 보인다" 같은 상황에서, 작업 트리·git 색인·zip 파일·텍스트 참조에 저장된 이름의 실제 바이트를 비교하고 되돌리기 파일이 딸린 dry-run 이름 변경 계획을 만듭니다.
 
 ![NFD 이름, git 색인 경로, 깨진 링크, zip 항목이 나열된 데모 폴더 검사 결과](docs/images/01-hero.ko.png)
-*데모 폴더에 `scan.py` 실행: 발견마다 이름의 실제 바이트와 NFC 로 바꾼 값이 나옵니다.*
+*데모 폴더에 `scan.py` 실행: 발견마다 이름의 실제 바이트와 NFC 로 바꾼 값이 나옵니다. 스크린샷은 zip 위치를 `archive.zip:` 으로 줄여 보여 줍니다. 직접 실행하면 압축 파일의 전체 경로가 나오고, 한국어 로캘이 아니면 영어로 나옵니다(`--lang ko` 로 한국어 고정).*
 
 ## 무엇을 하나
 
@@ -95,7 +95,7 @@ python3 skills/nfc-path-doctor/scripts/apply.py --undo undo.json --apply
 ```
 
 ![apply.py --apply 출력과 깔끔한 이름 변경으로 보이는 git status](docs/images/04-apply.ko.png)
-*`--apply` 뒤 `git status --porcelain` 은 삭제 + untracked 가 아니라 NFC 경로로의 이름 변경(`R`)으로 보입니다. zip 은 검사만 하므로 재검사에는 여전히 남습니다(`재검사: 종료 코드 1, zip_nfd_name 2, zip_legacy_name 1`).*
+*`--apply` 뒤 `git status --porcelain` 은 삭제 + untracked 가 아니라 NFC 경로로의 이름 변경(`R`)으로 보입니다. 데모 저장소는 `자료.txt` 하나만 추적하므로 직접 실행하면 나머지 데모 파일이 untracked(`??`)로 함께 나옵니다. 스크린샷은 추적 중인 줄만 보여 줍니다. zip 은 검사만 하므로 재검사에는 여전히 남습니다(`재검사: 종료 코드 1, zip_nfd_name 2, zip_legacy_name 1`).*
 
 `scan.py` 종료 코드: `0` 깨끗함, `1` 고칠 수 있는 발견, `3` 사람 결정 필요, `2` 입력 오류. `apply.py`: `0` 정상(dry-run 포함), `1` 계획이 오래되어 아무것도 바꾸지 않음, `2` 입력 오류, `4` 한 단계가 실패해 끝난 단계를 되돌림. 필드 설명은 [`skills/nfc-path-doctor/references/formats.md`](skills/nfc-path-doctor/references/formats.md) 에 있습니다.
 
@@ -180,7 +180,7 @@ macOS 의 git(`core.precomposeunicode`)과 zip 의 UTF-8 플래그(11번 비트,
 - NFC 만 지원합니다. NFKC·NFKD 는 이름 자체를 바꾸므로 쓰지 않습니다.
 - zip 은 검사만 하고 다시 쓰지 않습니다. 이름을 고친 뒤 직접 다시 압축하세요.
 - git 히스토리는 다시 쓰지 않습니다. 현재 색인만 바꿉니다.
-- Windows 는 확인하지 않았습니다. Linux 동작(NFC·NFD 가 나란히 존재)은 Linux 컨테이너와 CI 에서 도는 테스트로 확인합니다.
+- Windows 는 확인하지 않았습니다. Linux 동작(NFC·NFD 가 나란히 존재)은 macOS 에서 바이트를 그대로 보존하는 파일 시스템 모의 테스트로만 확인했습니다. Linux 전용 테스트는 Linux 에서만 실행되는 조건부 테스트이며, Linux 컨테이너나 CI 에서는 아직 돌려 보지 못했습니다.
 - 퍼센트 인코딩 URL·문장 속 단어는 참조로 풀지 않습니다.
 - HFS+ 는 이름을 분해형으로 유지하므로 NFC 로 바꾸는 이름 변경이 실패해 되돌려집니다.
 - 스크립트가 쓰지 않은 기존 JSON 파일은 덮어쓰지 않고 멈춥니다(`error: refusing to overwrite ...`, 종료 코드 2). 다른 `--out` 이름을 고르세요.
@@ -197,7 +197,7 @@ NFC_PATH_DOCTOR_LANG=ko python3 skills/nfc-path-doctor/scripts/scan.py demo-tree
 ## 개발
 
 ```
-uv sync && uv run pytest -q
+uv sync && uv run pytest
 ```
 
 `evals/` 폴더에 평가 세트가 있습니다. 발동 프롬프트(한국어 포함), 발동하면 안 되는 비슷한 프롬프트, `python3 evals/fixtures/build.py` 로 만드는 픽스처 압축 파일이 딸린 작업 케이스입니다. `claude plugin eval` 로 직접 돌려 볼 수 있습니다.

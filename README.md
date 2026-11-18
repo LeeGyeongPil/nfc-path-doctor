@@ -5,7 +5,7 @@
 An agent skill that finds and fixes Unicode normalization (NFC vs NFD) mismatches in file and folder names. When a file "clearly exists" but is not found, or git shows the same Korean, Japanese or accented file twice, the skill compares the real bytes of names in the work tree, the git index, zip archives and text references, then writes a dry-run rename plan with an undo file.
 
 ![Scan of a demo folder listing NFD names, a git index path, a broken link and zip entries](docs/images/01-hero.png)
-*`scan.py` on the demo folder: each finding shows the real bytes of the name and what it would be as NFC.*
+*`scan.py` on the demo folder: each finding shows the real bytes of the name and what it would be as NFC. The screenshot was taken with `--lang en` and zip locations shortened to `archive.zip:`; your run prints the full archive path, and Korean output on a Korean locale (add `--lang en` for English).*
 
 ## What it does
 
@@ -95,7 +95,7 @@ python3 skills/nfc-path-doctor/scripts/apply.py --undo undo.json --apply
 ```
 
 ![apply.py --apply output and git status showing a clean rename](docs/images/04-apply.png)
-*After `--apply`, `git status --porcelain` shows a rename (`R`) to the NFC path, not a deleted and an untracked file. Zip files are only inspected, so the re-check still reports them (`re-check: exit 1, zip_nfd_name 2, zip_legacy_name 1`).*
+*After `--apply`, `git status --porcelain` shows a rename (`R`) to the NFC path, not a deleted and an untracked file. Only `자료.txt` is tracked in the demo repo, so your `git status` also lists the other demo files as untracked (`??`); the screenshot shows the tracked line only. Zip files are only inspected, so the re-check still reports them (`re-check: exit 1, zip_nfd_name 2, zip_legacy_name 1`).*
 
 Exit codes of `scan.py`: `0` clean, `1` fixable findings, `3` a human decision is needed, `2` input error. `apply.py`: `0` ok (dry-run included), `1` plan is stale and nothing changed, `2` input error, `4` a step failed and finished steps were rolled back. Field details are in [`skills/nfc-path-doctor/references/formats.md`](skills/nfc-path-doctor/references/formats.md).
 
@@ -180,7 +180,7 @@ What this skill adds is the diagnosis step an agent needs: one scan across the w
 - NFC only. NFKC and NFKD change the name itself, so they are never used.
 - Zip files are inspected, never rewritten. Re-pack them yourself after fixing names.
 - git history is not rewritten; only the current index is changed.
-- Windows is unverified. Linux behavior (NFC and NFD side by side) is covered by tests that run in a Linux container and CI.
+- Windows is unverified. Linux behavior (NFC and NFD side by side) was checked only with a byte-preserving file system simulation in tests, run on macOS. The Linux-only tests are conditional and run only on Linux; they have not been run in a Linux container or CI yet.
 - Percent-encoded URLs and words in prose are not resolved as references.
 - HFS+ keeps names decomposed, so a rename to NFC there fails and is rolled back.
 - Scripts refuse to overwrite an existing JSON file they did not write (`error: refusing to overwrite ...`, exit 2). Pick another `--out` name.
@@ -197,7 +197,7 @@ NFC_PATH_DOCTOR_LANG=ko python3 skills/nfc-path-doctor/scripts/scan.py demo-tree
 ## Development
 
 ```
-uv sync && uv run pytest -q
+uv sync && uv run pytest
 ```
 
 The `evals/` folder holds the evaluation set: trigger prompts (including Korean), near-miss prompts that must not trigger, and task cases with fixture archives built by `python3 evals/fixtures/build.py`. Run it yourself with `claude plugin eval`.
