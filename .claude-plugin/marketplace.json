@@ -1,0 +1,8 @@
+{
+  "name": "nfc-path-doctor-skill",
+  "owner": {"name": "LeeGyeongPil"},
+  "description": "Agent skill that finds and fixes NFC/NFD file name mismatches.",
+  "plugins": [
+    {"name": "nfc-path-doctor", "source": "./", "description": "Diagnoses and safely fixes Unicode NFC/NFD file name mismatches with a dry-run plan and undo."}
+  ]
+}

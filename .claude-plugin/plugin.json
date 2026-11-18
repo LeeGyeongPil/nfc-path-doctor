@@ -1,0 +1,9 @@
+{
+  "name": "nfc-path-doctor",
+  "version": "0.1.0",
+  "description": "Diagnoses and safely fixes Unicode NFC/NFD file name mismatches across the file system, git index, zip files and text references.",
+  "author": {"name": "LeeGyeongPil"},
+  "license": "MIT",
+  "homepage": "https://github.com/LeeGyeongPil/nfc-path-doctor",
+  "repository": "https://github.com/LeeGyeongPil/nfc-path-doctor"
+}
