@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-11-19
+
+### Fixed
+
+- `apply.py` checks the undo file before printing the run header, so a refused undo file leaves no "applying" line.
+- CI: `actions/checkout` moved to v7 (Node 24 runtime); the job prints the runner environment.
+
+### Changed
+
+- Tests ignore the user's global and system git config (`GIT_CONFIG_GLOBAL=/dev/null`, `GIT_CONFIG_NOSYSTEM=1`) and cover the undo-file refusal order.
+- README (en/ko): screenshots match current output, test command corrected, Linux scope stated plainly (simulated on macOS, Ubuntu CI is the real check), verification table regenerated from the final evaluation results.
+
 ## [0.1.0] - 2026-11-19
 
 ### Added
@@ -16,3 +28,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Agent skill `nfc-path-doctor` with Claude Code plugin manifest, evaluation set and tests. The skill has one entry point: every request starts with the same `scan.py` command; `show.py` only compares names the user gives and `apply.py` only runs when the user asks for a fix. Secondary scan options are documented in `references/formats.md` and `--help`.
 
 [0.1.0]: https://github.com/LeeGyeongPil/nfc-path-doctor/releases/tag/v0.1.0
+[0.1.1]: https://github.com/LeeGyeongPil/nfc-path-doctor/compare/v0.1.0...v0.1.1
