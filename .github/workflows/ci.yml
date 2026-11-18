@@ -16,12 +16,21 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         python: ["3.10", "3.12", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@v7          # node24
+      - uses: astral-sh/setup-uv@v7        # node24
         with:
           python-version: ${{ matrix.python }}
       - run: uv sync --locked
-      - run: uv run pytest -q
+      - name: environment (printed so a failing run shows where it ran)
+        run: |
+          uname -a
+          uv --version
+          uv run python -V
+          uv run python -c "import locale, sys, unicodedata; print('fs encoding', sys.getfilesystemencoding(), '| locale', locale.getpreferredencoding(False), '| unicode', unicodedata.unidata_version)"
+          git --version
+          echo "LANG=${LANG:-} LC_ALL=${LC_ALL:-} TMPDIR=${TMPDIR:-}"
+      - name: tests (-ra lists every skip and failure reason)
+        run: uv run pytest -q -ra
       - name: every bundled script answers --help
         run: |
           for f in skills/*/scripts/*.py; do
@@ -31,7 +40,7 @@ jobs:
   spec:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       - name: Agent Skills spec (skills-ref, pinned)
         run: |
