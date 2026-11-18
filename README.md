@@ -5,7 +5,7 @@
 An agent skill that finds and fixes Unicode normalization (NFC vs NFD) mismatches in file and folder names. When a file "clearly exists" but is not found, or git shows the same Korean, Japanese or accented file twice, the skill compares the real bytes of names in the work tree, the git index, zip archives and text references, then writes a dry-run rename plan with an undo file.
 
 ![Scan of a demo folder listing NFD names, a git index path, a broken link and zip entries](docs/images/01-hero.png)
-*`scan.py` on the demo folder: each finding shows the real bytes of the name and what it would be as NFC. The screenshot was taken with `--lang en` and zip locations shortened to `archive.zip:`; your run prints the full archive path, and Korean output on a Korean locale (add `--lang en` for English).*
+*`scan.py` on the demo folder: each finding shows the real bytes of the name and what it would be as NFC. The screenshot was taken with `--lang en` and zip locations shortened to `archive.zip:` and the scanned folder shown as `<tmp>`; your run prints the full paths, and Korean output on a Korean locale (add `--lang en` for English).*
 
 ## What it does
 
@@ -39,7 +39,7 @@ All of these come from one fact: two names can look identical and still be diffe
 
 **Other agents (Agent Skills standard)** — copy `skills/nfc-path-doctor` into the agent's skills folder (for example `.agents/skills/` in a project). Codex CLI is one of them and passed the task check below.
 
-To try the scripts without an agent, clone the repository and run them directly:
+**Quick start without an agent** — clone the repository and run the scripts directly:
 
 ```
 git clone https://github.com/LeeGyeongPil/nfc-path-doctor.git
@@ -95,7 +95,7 @@ python3 skills/nfc-path-doctor/scripts/apply.py --undo undo.json --apply
 ```
 
 ![apply.py --apply output and git status showing a clean rename](docs/images/04-apply.png)
-*After `--apply`, `git status --porcelain` shows a rename (`R`) to the NFC path, not a deleted and an untracked file. Only `자료.txt` is tracked in the demo repo, so your `git status` also lists the other demo files as untracked (`??`); the screenshot shows the tracked line only. Zip files are only inspected, so the re-check still reports them (`re-check: exit 1, zip_nfd_name 2, zip_legacy_name 1`).*
+*After `--apply`, `git status --porcelain` shows a rename (`R`) to the NFC path, not a deleted and an untracked file. Only `자료.txt` is tracked in the demo repo, so your `git status` also lists the other demo files as untracked (`??`); the screenshot shows the tracked line only, and the undo file path is shortened to `<tmp>`. Zip files are only inspected, so the re-check still reports them (`re-check: exit 1, zip_nfd_name 2, zip_legacy_name 1`).*
 
 Exit codes of `scan.py`: `0` clean, `1` fixable findings, `3` a human decision is needed, `2` input error. `apply.py`: `0` ok (dry-run included), `1` plan is stale and nothing changed, `2` input error, `4` a step failed and finished steps were rolled back. Field details are in [`skills/nfc-path-doctor/references/formats.md`](skills/nfc-path-doctor/references/formats.md).
 
@@ -108,7 +108,7 @@ Exit codes of `scan.py`: `0` clean, `1` fixable findings, `3` a human decision i
 | Stays quiet when it should not | 12/12 |
 | Tasks solved with the skill | 5/5 |
 | Tasks solved without it (baseline) | 0/5 |
-| Mean score gain (Δ) | +0.72 |
+| Mean score gain (Δ) | +0.68 |
 | Tasks that catch a broken script | 5/5 |
 | Codex CLI | 5/5 tasks · verified |
 

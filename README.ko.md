@@ -5,7 +5,7 @@
 파일·폴더 이름의 유니코드 정규화(NFC·NFD) 불일치를 찾아 안전하게 고치는 에이전트 스킬입니다. "분명히 있는 파일을 못 찾는다", "같은 한글·일본어·악센트 파일이 git 에 두 번 보인다" 같은 상황에서, 작업 트리·git 색인·zip 파일·텍스트 참조에 저장된 이름의 실제 바이트를 비교하고 되돌리기 파일이 딸린 dry-run 이름 변경 계획을 만듭니다.
 
 ![NFD 이름, git 색인 경로, 깨진 링크, zip 항목이 나열된 데모 폴더 검사 결과](docs/images/01-hero.ko.png)
-*데모 폴더에 `scan.py` 실행: 발견마다 이름의 실제 바이트와 NFC 로 바꾼 값이 나옵니다. 스크린샷은 zip 위치를 `archive.zip:` 으로 줄여 보여 줍니다. 직접 실행하면 압축 파일의 전체 경로가 나오고, 한국어 로캘이 아니면 영어로 나옵니다(`--lang ko` 로 한국어 고정).*
+*데모 폴더에 `scan.py` 실행: 발견마다 이름의 실제 바이트와 NFC 로 바꾼 값이 나옵니다. 스크린샷은 zip 위치를 `archive.zip:` 으로, 검사한 폴더를 `<tmp>` 로 줄여 보여 줍니다. 직접 실행하면 전체 경로가 나오고, 한국어 로캘이 아니면 영어로 나옵니다(`--lang ko` 로 한국어 고정).*
 
 ## 무엇을 하나
 
@@ -39,7 +39,7 @@ Python 3.10+ 표준 라이브러리만 씁니다. 네트워크 접근이 없습�
 
 **다른 에이전트(Agent Skills 표준)** — `skills/nfc-path-doctor` 를 에이전트의 스킬 폴더(예: 프로젝트의 `.agents/skills/`)에 복사합니다. Codex CLI 도 그중 하나이며 아래 작업 검증을 통과했습니다.
 
-에이전트 없이 스크립트만 써 보려면 저장소를 받아 직접 실행합니다.
+**에이전트 없이 빠르게 시작하기** — 저장소를 받아 스크립트를 직접 실행합니다.
 
 ```
 git clone https://github.com/LeeGyeongPil/nfc-path-doctor.git
@@ -95,7 +95,7 @@ python3 skills/nfc-path-doctor/scripts/apply.py --undo undo.json --apply
 ```
 
 ![apply.py --apply 출력과 깔끔한 이름 변경으로 보이는 git status](docs/images/04-apply.ko.png)
-*`--apply` 뒤 `git status --porcelain` 은 삭제 + untracked 가 아니라 NFC 경로로의 이름 변경(`R`)으로 보입니다. 데모 저장소는 `자료.txt` 하나만 추적하므로 직접 실행하면 나머지 데모 파일이 untracked(`??`)로 함께 나옵니다. 스크린샷은 추적 중인 줄만 보여 줍니다. zip 은 검사만 하므로 재검사에는 여전히 남습니다(`재검사: 종료 코드 1, zip_nfd_name 2, zip_legacy_name 1`).*
+*`--apply` 뒤 `git status --porcelain` 은 삭제 + untracked 가 아니라 NFC 경로로의 이름 변경(`R`)으로 보입니다. 데모 저장소는 `자료.txt` 하나만 추적하므로 직접 실행하면 나머지 데모 파일이 untracked(`??`)로 함께 나옵니다. 스크린샷은 추적 중인 줄만 보여 주고, undo 파일 경로는 `<tmp>` 로 줄였습니다. zip 은 검사만 하므로 재검사에는 여전히 남습니다(`재검사: 종료 코드 1, zip_nfd_name 2, zip_legacy_name 1`).*
 
 `scan.py` 종료 코드: `0` 깨끗함, `1` 고칠 수 있는 발견, `3` 사람 결정 필요, `2` 입력 오류. `apply.py`: `0` 정상(dry-run 포함), `1` 계획이 오래되어 아무것도 바꾸지 않음, `2` 입력 오류, `4` 한 단계가 실패해 끝난 단계를 되돌림. 필드 설명은 [`skills/nfc-path-doctor/references/formats.md`](skills/nfc-path-doctor/references/formats.md) 에 있습니다.
 
@@ -108,7 +108,7 @@ python3 skills/nfc-path-doctor/scripts/apply.py --undo undo.json --apply
 | 필요 없을 때 안 불림 | 12/12 |
 | 스킬로 푼 작업 | 5/5 |
 | 스킬 없이 푼 작업(기준선) | 0/5 |
-| 평균 점수 차이(Δ) | +0.72 |
+| 평균 점수 차이(Δ) | +0.68 |
 | 가짜 스크립트를 잡아낸 비율 | 5/5 |
 | Codex CLI | 작업 5/5 통과 · 확인됨 |
 
