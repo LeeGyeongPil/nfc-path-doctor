@@ -46,6 +46,24 @@ def fs_distinguishes_forms(base: Path) -> bool:
     return True
 
 
+@pytest.fixture(scope="session", autouse=True)
+def clean_git_config():
+    """Run every git call (tests and scripts) as on a fresh CI runner: no global or system git config.
+
+    A developer's global config (core.precomposeunicode, user identity, hooks, init.defaultBranch) must not decide
+    whether a test passes; GitHub runners have none of it.
+    """
+    saved = {k: os.environ.get(k) for k in ("GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM")}
+    os.environ["GIT_CONFIG_GLOBAL"] = os.devnull       # 사용자 전역 설정(~/.gitconfig) 무시
+    os.environ["GIT_CONFIG_NOSYSTEM"] = "1"            # 시스템 설정(/etc/gitconfig) 무시
+    yield
+    for k, v in saved.items():
+        if v is None:
+            os.environ.pop(k, None)
+        else:
+            os.environ[k] = v
+
+
 @pytest.fixture(scope="session")
 def coexist(tmp_path_factory) -> bool:
     return fs_distinguishes_forms(tmp_path_factory.mktemp("probe"))

@@ -407,3 +407,15 @@ def test_apply_refuses_a_foreign_undo_file_before_renaming(site, tmp_path, capsy
     code, _, err = run_cli(apply_mod, [str(plan), "--apply", "--lang", "en"], capsys)
     assert code == 2 and "refusing to overwrite" in err
     assert undo.read_text() == "keep me" and snapshot(site) == before
+
+
+def test_foreign_undo_file_is_refused_before_any_announcement(site, tmp_path, capsys):
+    plan = make_plan(site, tmp_path / "plan.json", "--no-git")
+    capsys.readouterr()   # drop the scan output
+    foreign = tmp_path / "notes.txt"
+    foreign.write_text("mine")
+    before = snapshot(site)
+    code, out, err = run_cli(apply_mod, [str(plan), "--apply", "--undo-out", str(foreign), "--lang", "en"], capsys)
+    assert code == 2 and err
+    assert "step(s)" not in out and out == ""
+    assert foreign.read_text() == "mine" and snapshot(site) == before
