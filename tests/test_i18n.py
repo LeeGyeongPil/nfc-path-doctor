@@ -61,8 +61,14 @@ def test_help_is_localized(script):
         r = subprocess.run([sys.executable, str(SCRIPTS / script), "--help", "--lang", lang], capture_output=True, text=True)
         assert r.returncode == 0
         return r.stdout
-    assert not re.search(r"[가-힣]", helptext("en"))
-    assert len(re.findall(r"[가-힣]", helptext("ko"))) > 20
+    en, ko = helptext("en"), helptext("ko")
+    assert not re.search(r"[가-힣]", en)
+    assert len(re.findall(r"[가-힣]", ko)) > 20
+    # 0.1.4: the argparse headings and the usage prefix follow the language too
+    assert en.startswith("usage: ") and "\noptions:\n" in en
+    assert ko.startswith("사용법: ") and "\n옵션:\n" in ko
+    assert "usage:" not in ko and "options:" not in ko and "positional arguments" not in ko
+    assert ("positional arguments:" in en) == ("위치 인자:" in ko)
 
 
 def test_environment_variable_changes_the_output(site, capsys, monkeypatch):
@@ -98,10 +104,12 @@ def test_error_messages_in_both_languages(tmp_path, capsys):
 
 
 def test_usage_errors_use_the_localized_prefix(capsys):
+    # ROOT 는 생략하면 현재 폴더다 (0.1.3): 잘못된 옵션 값으로 사용법 오류를 낸다
     with pytest.raises(SystemExit) as e:
-        scan_mod.main(["--lang", "ko"])
+        scan_mod.main(["--max-rows", "many", "--lang", "ko"])
     assert e.value.code == 2
-    assert "오류:" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "오류:" in err and err.startswith("사용법: scan.py")
 
 
 def test_ko_table_and_show_output(site, capsys):
