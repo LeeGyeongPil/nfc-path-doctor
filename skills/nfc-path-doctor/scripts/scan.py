@@ -451,6 +451,8 @@ def run_scan(root: str, zips: list[str], no_git: bool, no_refs: bool, ref_ext: s
     tree = walk_tree(root, excludes)
     findings, fs_blocked = fs_findings(tree, casefold)
     stats: dict = {"entries": len(tree.entries), "skipped_dirs": tree.skipped, "git": "skipped (--no-git)" if no_git else "no repository"}
+    # 비ASCII 이름이 하나도 없으면 정규화 문제가 생길 수 없다: 표가 "여기에는 검사할 것이 없음"을 알려 줄 근거
+    stats["entries_non_ascii"] = sum(1 for e in tree.entries if not n.encode_name(e.name).isascii())
     index_blocked: list[dict] = []
     index_actions: list[dict] = []
     prefix: bytes | None = None
@@ -462,6 +464,7 @@ def run_scan(root: str, zips: list[str], no_git: bool, no_refs: bool, ref_ext: s
             findings += f
             stats["git"] = "checked"
             stats["index_entries"] = len(ents)
+            stats["index_non_ascii"] = sum(1 for e in ents if not e[3].isascii())
         # ROOT 아래 저장소(예: 방금 압축을 푼 저장소)의 색인도 하나씩 검사한다.
         # ROOT 가 다른 저장소(프로젝트 폴더 등) 안에 있어도 마찬가지다: 바깥 색인에는 안쪽 저장소의 파일이 없다.
         repos, unreadable = nested_repos(root, tree, prefix)
@@ -471,6 +474,7 @@ def run_scan(root: str, zips: list[str], no_git: bool, no_refs: bool, ref_ext: s
         if repos:
             stats["git"] = "checked"
             stats.setdefault("index_entries", 0)
+            stats.setdefault("index_non_ascii", 0)
             stats["repos"] = [n.disp(r) for r in repos]
         for repo in repos:
             ents = n.git_index(os.path.join(root, repo))
@@ -480,6 +484,7 @@ def run_scan(root: str, zips: list[str], no_git: bool, no_refs: bool, ref_ext: s
             index_blocked += [{**x, **tag} for x in b]
             index_actions += [{**x, **tag} for x in a]
             stats["index_entries"] += len(ents)
+            stats["index_non_ascii"] += sum(1 for e in ents if not e[3].isascii())
     hits: list[dict] = []
     files: dict[str, dict] = {}
     if not no_refs:
@@ -512,12 +517,59 @@ def summary_text(summary: dict[str, int]) -> str:
     return ", ".join(f"{k} {summary[k]}" for k in ALL_KINDS if k in summary)
 
 
-def render_table(report: dict, lang: str, max_rows: int, exit_zero: bool = False, plan_path: str | None = None) -> str:
+def checked_line(report: dict, lang: str) -> str:
+    """What the scan actually looked at, so that a clean result is never read as 'checked everything'."""
+    st = report["stats"]
+    if st["git"] == "checked":
+        git = n.msg(lang, "scan_git_checked", n=st.get("index_entries", 0), non_ascii=st.get("index_non_ascii", 0))
+    elif st["git"].startswith("skipped"):
+        git = n.msg(lang, "scan_git_skipped")
+    else:
+        git = n.msg(lang, "scan_git_none")
+    return n.msg(lang, "scan_checked", names=st["entries"], names_non_ascii=st.get("entries_non_ascii", 0), git=git,
+                 refs=st.get("ref_files", 0), zips=len(st.get("zips", [])))
+
+
+def nothing_here(report: dict) -> bool:
+    """True when nothing below ROOT can have a normalization problem: no non-ASCII name on disk or in a git index,
+    no zip and no repository that git could not open. Never true with --no-git: the index was not read."""
+    st = report["stats"]
+    if st["git"].startswith("skipped"):
+        # 색인을 읽지 않았으니 "색인에도 비ASCII 이름이 없다"고 말할 수 없다
+        return False
+    return (not report["findings"] and st.get("entries_non_ascii", 0) == 0 and st.get("index_non_ascii", 0) == 0
+            and not st.get("zips") and not st.get("repos_unreadable"))
+
+
+def done_line(report: dict, lang: str, max_rows: int = 200, out_path: str | None = None) -> str:
+    """Last line of the table: whether the printed lines are the whole result (so nobody re-checks by hand),
+    and where the rest is when the table was cut at --max-rows."""
+    total = len(report["findings"])
+    if total > max_rows:
+        # 표가 잘렸다: "전체 결과"라고 하지 않고 나머지가 있는 곳을 정확히 알린다
+        if out_path:
+            return n.msg(lang, "scan_done_partial", shown=max_rows, total=total, path=out_path)
+        return n.msg(lang, "scan_done_partial_no_out", shown=max_rows, total=total)
+    if nothing_here(report):
+        return n.msg(lang, "scan_done_elsewhere")
+    # 고칠 거리가 있으면(1·3) "다음:" 줄의 apply.py 는 이름을 고칠 때만 쓴다
+    return n.msg(lang, "scan_done_fix" if report["exit_code"] in (1, 3) else "scan_done")
+
+
+def render_table(report: dict, lang: str, max_rows: int, exit_zero: bool = False, plan_path: str | None = None,
+                 out_path: str | None = None) -> str:
     m = lambda key, **kw: n.msg(lang, key, **kw)  # noqa: E731
-    lines = [m("scan_title", root=report["root"])]
+    lines = [m("scan_title", root=report["root"]), checked_line(report, lang)]
     findings = report["findings"]
     if not findings:
         lines.append(m("scan_clean"))
+        if report["stats"]["git"].startswith("skipped"):
+            # --no-git: 깨끗한 결과가 색인까지 확인한 것으로 읽히지 않게 한다
+            lines.append(m("scan_git_skipped_note"))
+        elif nothing_here(report):
+            # 빈 폴더 등: 에이전트가 직접 뒤지지 않고 바로 원인을 설명하고 폴더를 묻도록 이유를 함께 적는다
+            lines.append(m("scan_nothing_here"))
+            lines.append(m("scan_usual_cause"))
     else:
         lines.append(m("scan_found", n=len(findings), summary=summary_text(report["summary"])))
         lines.append("")
@@ -541,7 +593,10 @@ def render_table(report: dict, lang: str, max_rows: int, exit_zero: bool = False
                 if f.get("guess", {}).get("encoding"):
                     lines.append("    " + m("scan_guess", enc=f["guess"]["encoding"], text=f["guess"]["text"]))
         if len(findings) > max_rows:
-            lines.append(m("scan_more", n=len(findings) - max_rows))
+            # 나머지가 들어 있는 보고서 파일을 이미 썼다면 그 이름을 적는다
+            hidden = len(findings) - max_rows
+            lines.append(m("scan_more_out", n=hidden, total=len(findings), path=out_path) if out_path
+                         else m("scan_more", n=hidden))
         lines.append("")
         lines.append(m("scan_legend"))
         for k in ALL_KINDS:
@@ -568,7 +623,7 @@ def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     lang = n.lang_from_argv(argv)
     p = n.make_parser("scan.py", "scan_desc", lang)
-    p.add_argument("root", metavar="ROOT", help=n.msg(lang, "scan_root"))
+    p.add_argument("root", metavar="ROOT", nargs="?", default=".", help=n.msg(lang, "scan_root"))
     p.add_argument("--out", metavar="FILE", help=n.msg(lang, "scan_out"))
     p.add_argument("--plan-out", metavar="FILE", help=n.msg(lang, "scan_plan_out"))
     p.add_argument("--zip", action="append", default=[], metavar="ZIP", help=n.msg(lang, "scan_zip"))
@@ -582,6 +637,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--exit-zero", action="store_true", help=n.msg(lang, "scan_exit_zero"))
     args = p.parse_args(argv)
     lang = n.pick_lang(args.lang)
+    if args.max_rows < 0:
+        # 음수는 슬라이스에서 뒤에서부터 잘라 행 수와 "N건 더" 숫자가 틀어진다
+        p.error(n.msg(lang, "err_max_rows"))
     try:
         n.guard_output(args.out)
         n.guard_output(args.plan_out)
@@ -608,9 +666,11 @@ def main(argv: list[str] | None = None) -> int:
         for line in notes:
             sys.stderr.write(line + "\n")
     else:
-        sys.stdout.write(render_table(report, lang, args.max_rows, args.exit_zero, args.plan_out))
+        sys.stdout.write(render_table(report, lang, args.max_rows, args.exit_zero, args.plan_out, args.out))
         for line in notes:
             sys.stdout.write(line + "\n")
+        # 마지막 줄: 출력이 전체 결과인지(다시 확인할 필요 없음), 잘렸다면 나머지가 어디 있는지 알린다
+        sys.stdout.write(done_line(report, lang, args.max_rows, args.out) + "\n")
     # --exit-zero: 검사가 끝났으면 0 으로 끝낸다 (결과 코드는 보고서 exit_code 와 표 마지막 줄에 남는다)
     return 0 if args.exit_zero else report["exit_code"]
 

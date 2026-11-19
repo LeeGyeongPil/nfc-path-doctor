@@ -7,7 +7,7 @@ compatibility: Python 3.10+ (standard library only); git is optional and only ne
 
 # NFC path doctor
 
-NFC and NFD names look identical on screen, so neither you nor the user can tell them apart by eye. The scripts read the real bytes: answer only from their output, never from `ls`, `git ls-files`, your own Python checks or a report you write yourself.
+NFC and NFD names look identical on screen, so neither you nor the user can tell them apart by eye. The scripts read the real bytes: answer only from their output, never from `ls`, `git ls-files`, your own Python checks or a report you write yourself. A diagnosis is one scan and one answer: do not look around before or after the scan.
 
 The scripts are `scripts/scan.py` (the entry point for every request), `scripts/show.py` (only to compare names the user gives) and `scripts/apply.py` (only when the user asks for a fix). `<skill-dir>` below is this skill's base directory (the folder of this SKILL.md, shown when the skill loads); always use its absolute path.
 
@@ -24,13 +24,13 @@ python3 <skill-dir>/scripts/scan.py . --exit-zero --out report.json --plan-out p
 - If the user names the output file, pass that name to `--out`. The script writes the whole report; never write or edit it yourself.
 - Run the command as written: no wrapper shell file, no shell variable for the path, no `| head`. An `error:` line (exit 2) is the answer; show it as is.
 
-## Step 2: answer from the scan output and report.json
+## Step 2: answer at once from the printed output
 
-- `summary` counts each kind. `nfd_name`, `mixed_name`: decomposed names, fine on macOS but "not found" on Linux.
-- `ref_mismatch`: a link that breaks on Linux or GitHub; give its `location` (file:line:column).
-- `index_*`: git tracks a non-NFC path. `zip_*`: names inside an archive (`raw_hex` and `guess` for legacy names).
+- The scan prints what it checked, every finding with its bytes and kind, and ends with a `Done:` line. That output is complete: do not open `report.json`, `plan.json` or the references and do not re-check with `ls`, `git` or `cat`; reply now. Only if it says `more finding(s) not shown` (over 200 findings), read `findings` in `report.json` once for the rest, then reply.
+- `Nothing here to examine`: no non-ASCII name in this folder, so the user's files are elsewhere. Explain the printed cause and ask for the folder or zip; never search the disk.
+- `summary` counts each kind: `nfd_name`, `mixed_name` decomposed names ("not found" on Linux), `index_*` a non-NFC git path, `zip_*` archive names (`raw_hex`, `guess` for legacy names), `ref_mismatch` a link that breaks on Linux or GitHub (give its `location`, file:line:column).
 - `*_collision`, `index_conflict_stage`, `undecodable_name`: a human decides. Report the `members`, change nothing, ask.
-- Quote `path_hex` / `nfc_hex` from the output; never retype a suspicious name.
+- Quote `path_hex` / `nfc_hex` (the `bytes:` lines); never retype a suspicious name.
 
 ## Only if the user gave names to compare
 
@@ -48,4 +48,4 @@ Run `python3 <skill-dir>/scripts/show.py --file names.txt --out names.json` (or 
 - The target form is always NFC (never NFKC/NFKD). Zip files are only inspected.
 - `test -e` being true on macOS proves nothing: APFS ignores normalization.
 
-More: `references/formats.md` (JSON fields, exit codes, nested repositories, warnings, extra options), `references/background.md` (NFC/NFD, filesystems, git, zip).
+More, only for questions the scan output leaves open: `references/formats.md` (JSON fields, exit codes, nested repositories, warnings, extra options), `references/background.md` (NFC/NFD, filesystems, git, zip).

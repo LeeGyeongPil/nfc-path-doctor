@@ -23,7 +23,7 @@ All JSON is written with sorted keys and two-space indent, so the same input giv
   "root_hex": "...",
   "summary": {"nfd_name": 3, "ref_mismatch": 1},
   "findings": [{"kind": "nfd_name", "where": "fs", "path": "...", "path_hex": "...", "nfc": "...", "nfc_hex": "...", "form": "nfd"}],
-  "stats": {"entries": 5, "git": "checked", "ref_files": 1, "ref_files_skipped": 0, "skipped_dirs": 0, "zips": []},
+  "stats": {"entries": 5, "entries_non_ascii": 3, "git": "checked", "ref_files": 1, "ref_files_skipped": 0, "skipped_dirs": 0, "zips": []},
   "exit_code": 1
 }
 ```
@@ -33,6 +33,8 @@ Findings are sorted by kind, zip, where, repository, path bytes, line, column. `
 JSON files written by these scripts (reports, plans, undo files, `show.py --out`) are not searched for references; `stats.ref_files_own_reports` counts them.
 
 `--exit-zero` changes only the process exit status (0 when the scan finished); `exit_code` in the report keeps the result code.
+
+`stats.entries_non_ascii` counts names on disk with a non-ASCII character and `stats.index_non_ascii` (when a git index was read) index paths with one. The table prints both on its `checked:` line. When the scan found nothing and both are 0 with no zip given, the table adds `Nothing here to examine` and the usual cause: the files in question are in another folder, zip or machine. The table always ends with a `Done:` line. Up to `--max-rows` findings (default 200) the printed table holds every finding, so no second command is needed to read the result. Above that the table prints `... N more finding(s) not shown` and the `Done:` line names the `--out` file whose `findings` hold all of them (without `--out` it says to run again with `--out FILE`). With `--no-git` the index is not read, so the table never says `Nothing here to examine` and notes that the index was not checked. ROOT defaults to the current folder.
 
 ## Repositories below the scanned folder
 

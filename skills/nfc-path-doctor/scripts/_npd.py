@@ -50,6 +50,10 @@ MESSAGES: dict[str, dict[str, str]] = {
         "err_prefix": "error",
         "lang_help": "output language: en or ko (default: NFC_PATH_DOCTOR_LANG, then the locale)",
         "help_help": "show this help message and exit",
+        "help_usage": "usage: ",
+        "help_positionals": "positional arguments",
+        "help_options": "options",
+        "err_max_rows": "--max-rows must be 0 or more",
         # errors
         "err_path_not_found": "path not found: {path}",
         "err_not_dir": "not a directory: {path}",
@@ -108,7 +112,7 @@ MESSAGES: dict[str, dict[str, str]] = {
         # scan.py
         "scan_desc": "Compare file names on disk, the git index, zip archives and text references byte by byte "
                      "and report Unicode normalization (NFC/NFD) mismatches.",
-        "scan_root": "folder to scan",
+        "scan_root": "folder to scan (default: the current folder)",
         "scan_out": "write the JSON report to this file",
         "scan_plan_out": "write a dry-run NFC fix plan (JSON) for apply.py to this file",
         "scan_zip": "also inspect this zip archive (repeatable; never modified)",
@@ -127,7 +131,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "scan_title": "nfc-path-doctor scan  root={root}",
         "scan_clean": "No normalization problems found.",
         "scan_found": "{n} finding(s): {summary}",
-        "scan_more": "... {n} more finding(s) not shown (see --out for all)",
+        "scan_more": "... {n} more finding(s) not shown (add --out FILE for all of them, or raise --max-rows)",
+        "scan_more_out": "... {n} more finding(s) not shown; all {total} are in {path} (\"findings\")",
         "scan_legend": "What the kinds mean:",
         "scan_bytes": "bytes: {hex}",
         "scan_nfc_bytes": "as NFC: {hex}",
@@ -147,6 +152,28 @@ MESSAGES: dict[str, dict[str, str]] = {
         "scan_skipped": "note: {n} unreadable folder(s) were skipped",
         "scan_repo_unreadable": "warning: {path} has a .git entry that git cannot open, so its index was NOT "
                                 "checked (unpacked only partly? HEAD, objects, refs or index missing)",
+        "scan_checked": "checked: {names} name(s) on disk ({names_non_ascii} non-ASCII), git index: {git}, "
+                        "{refs} text file(s), {zips} zip(s)",
+        "scan_git_checked": "{n} path(s) ({non_ascii} non-ASCII)",
+        "scan_git_none": "no repository here",
+        "scan_git_skipped": "skipped (--no-git)",
+        "scan_git_skipped_note": "note: the git index was not checked (--no-git), so a name that exists only in the "
+                                 "index is not covered by this result.",
+        "scan_nothing_here": "Nothing here to examine: no name in this folder or its git index has a non-ASCII "
+                             "character and no zip was given, so the files in question are in another folder, "
+                             "zip or machine.",
+        "scan_usual_cause": "Usual cause: macOS (Finder, zips made on a Mac) can store names decomposed (NFD), while "
+                            "Linux, git and GitHub compare bytes, so a name typed or linked in the composed form "
+                            "(NFC) does not match although it looks the same.",
+        "scan_done": "Done: the lines above are the complete result; nothing else needs to be checked.",
+        "scan_done_fix": "Done: the lines above are the complete result; nothing else needs to be checked. "
+                         "The Next line is only for fixing the names.",
+        "scan_done_elsewhere": "Done: there is nothing to check in this folder. The next scan needs the folder or zip "
+                               "that holds the files in question (or the two names to compare).",
+        "scan_done_partial": "Done: the table shows {shown} of {total} findings; the full list is in {path} "
+                             "(\"findings\").",
+        "scan_done_partial_no_out": "Done: the table shows {shown} of {total} findings; run the scan again with "
+                                    "--out FILE (or a larger --max-rows) for the full list.",
         "k_nfd_name": "name on disk is decomposed (NFD); other systems may not find it by its NFC name",
         "k_mixed_name": "name on disk mixes NFC and NFD characters",
         "k_undecodable_name": "name is not valid UTF-8; it cannot be normalized automatically",
@@ -196,6 +223,10 @@ MESSAGES: dict[str, dict[str, str]] = {
         "err_prefix": "오류",
         "lang_help": "출력 언어: en 또는 ko (기본값: NFC_PATH_DOCTOR_LANG, 그다음 로캘)",
         "help_help": "도움말을 보여 주고 끝냅니다",
+        "help_usage": "사용법: ",
+        "help_positionals": "위치 인자",
+        "help_options": "옵션",
+        "err_max_rows": "--max-rows 는 0 이상이어야 합니다",
         "err_path_not_found": "경로가 없습니다: {path}",
         "err_not_dir": "디렉터리가 아닙니다: {path}",
         "err_zip_invalid": "올바른 zip 파일이 아닙니다: {path} (압축 파일을 다시 받거나 다시 만드세요)",
@@ -251,7 +282,7 @@ MESSAGES: dict[str, dict[str, str]] = {
         "form_undecodable": "올바른 UTF-8 이 아닌 바이트 포함",
         "scan_desc": "디스크의 파일 이름, git 색인, zip 파일, 텍스트 참조를 바이트 단위로 대조해 "
                      "유니코드 정규화(NFC/NFD) 불일치를 보고합니다.",
-        "scan_root": "검사할 폴더",
+        "scan_root": "검사할 폴더 (기본: 현재 폴더)",
         "scan_out": "JSON 보고서를 이 파일에 씁니다",
         "scan_plan_out": "apply.py 가 쓸 NFC 수정 계획(JSON, dry-run 용)을 이 파일에 씁니다",
         "scan_zip": "이 zip 도 검사합니다 (여러 번 가능, 절대 수정하지 않음)",
@@ -269,7 +300,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "scan_title": "nfc-path-doctor 검사  루트={root}",
         "scan_clean": "정규화 문제가 없습니다.",
         "scan_found": "발견 {n}건: {summary}",
-        "scan_more": "... {n}건 더 있습니다 (전체는 --out 참고)",
+        "scan_more": "... {n}건 더 있습니다 (전체를 보려면 --out FILE 을 붙이거나 --max-rows 를 늘리세요)",
+        "scan_more_out": "... {n}건 더 있습니다. 전체 {total}건은 {path} 의 \"findings\" 에 있습니다",
         "scan_legend": "종류 설명:",
         "scan_bytes": "바이트: {hex}",
         "scan_nfc_bytes": "NFC 로: {hex}",
@@ -286,6 +318,26 @@ MESSAGES: dict[str, dict[str, str]] = {
         "scan_plan_written": "계획 저장: {path} (실행 {actions}건, 보류 {blocked}건)",
         "scan_report_written": "보고서 저장: {path}",
         "scan_skipped": "참고: 읽을 수 없는 폴더 {n}개를 건너뛰었습니다",
+        "scan_checked": "검사 범위: 디스크 이름 {names}개 (비ASCII {names_non_ascii}개), git 색인: {git}, "
+                        "텍스트 파일 {refs}개, zip {zips}개",
+        "scan_git_checked": "경로 {n}개 (비ASCII {non_ascii}개)",
+        "scan_git_none": "여기에는 저장소가 없음",
+        "scan_git_skipped": "건너뜀 (--no-git)",
+        "scan_git_skipped_note": "참고: git 색인은 검사하지 않았습니다 (--no-git). 색인에만 있는 이름은 이 결과에 "
+                                 "포함되지 않습니다.",
+        "scan_nothing_here": "여기에는 검사할 것이 없습니다: 이 폴더와 git 색인의 이름에 비ASCII 글자가 하나도 없고 "
+                             "zip 도 주어지지 않았습니다. 문제의 파일은 다른 폴더·zip·컴퓨터에 있습니다.",
+        "scan_usual_cause": "흔한 원인: macOS(Finder, 맥에서 만든 zip)는 이름을 분해형(NFD)으로 저장할 수 있고, "
+                            "리눅스·git·GitHub 는 바이트로 비교하므로 조합형(NFC)으로 입력하거나 링크한 이름은 "
+                            "똑같아 보여도 맞지 않습니다.",
+        "scan_done": "끝: 위 내용이 전체 결과입니다. 더 확인할 것은 없습니다.",
+        "scan_done_fix": "끝: 위 내용이 전체 결과입니다. 더 확인할 것은 없습니다. '다음:' 줄은 이름을 고칠 때만 씁니다.",
+        "scan_done_elsewhere": "끝: 이 폴더에는 검사할 것이 없습니다. 다음 검사에는 문제의 파일이 있는 폴더나 zip "
+                               "(또는 비교할 두 이름)이 필요합니다.",
+        "scan_done_partial": "끝: 표에는 발견 {total}건 중 {shown}건만 있습니다. 전체 목록은 {path} 의 \"findings\" 에 "
+                             "있습니다.",
+        "scan_done_partial_no_out": "끝: 표에는 발견 {total}건 중 {shown}건만 있습니다. 전체 목록을 보려면 --out FILE 을 "
+                                    "붙여 (또는 --max-rows 를 늘려) 다시 검사하세요.",
         "scan_repo_unreadable": "경고: {path} 에 .git 이 있지만 git 이 열지 못해 색인을 검사하지 못했습니다 "
                                 "(압축이 일부만 풀렸나요? HEAD·objects·refs·index 누락)",
         "k_nfd_name": "디스크의 이름이 분해형(NFD)이라 다른 시스템에서 NFC 이름으로 못 찾을 수 있음",
@@ -357,12 +409,26 @@ class ToolError(Exception):
         return msg(lang, self.key, **kw)
 
 
+def localized_formatter(lang: str) -> type[argparse.HelpFormatter]:
+    """Help formatter whose 'usage: ' prefix is in the selected language."""
+
+    class Formatter(argparse.HelpFormatter):
+        def add_usage(self, usage, actions, groups, prefix=None):  # type: ignore[no-untyped-def]
+            # argparse 기본 접두어("usage: ")를 고른 언어의 문구로 바꾼다
+            super().add_usage(usage, actions, groups, msg(lang, "help_usage") if prefix is None else prefix)
+
+    return Formatter
+
+
 class LocalizedParser(argparse.ArgumentParser):
-    """argparse parser whose usage errors use the selected language prefix and exit 2."""
+    """argparse parser whose help headings, usage prefix and usage errors use the selected language (exit 2)."""
 
     def __init__(self, *a: object, lang: str = "en", **kw: object):
         self.lang = lang
-        super().__init__(*a, **kw)  # type: ignore[arg-type]
+        super().__init__(*a, formatter_class=localized_formatter(lang), **kw)  # type: ignore[arg-type]
+        # 도움말의 구역 제목("positional arguments", "options")도 고른 언어로
+        self._positionals.title = msg(lang, "help_positionals")
+        self._optionals.title = msg(lang, "help_options")
 
     def error(self, message: str) -> NoReturn:
         self.print_usage(sys.stderr)
