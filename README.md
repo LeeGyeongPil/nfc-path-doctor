@@ -130,7 +130,7 @@ flowchart LR
   D --> E[undo.json]
 ```
 
-- `SKILL.md` has one entry point: run `scan.py` first, answer from its output and `report.json`. It also tells the agent what never to do (retype names, change git config, use `git mv` for NFD to NFC).
+- `SKILL.md` has one entry point: run `scan.py` first, then answer from its printed output (it ends with a `Done:` line that says whether the table is the complete result); `report.json` holds the same findings as JSON, and is read only when the table is cut off at `--max-rows` (default 200). It also tells the agent what never to do (retype names, change git config, use `git mv` for NFD to NFC).
 - `scan.py` only reads. It lists directories, reads the git index through `git`, opens zip files read-only and reads text files.
 - `apply.py` is the only script that writes, and only inside the scanned folder. It checks that the plan is not stale first.
 - Nothing leaves your machine: there is no network access and no extra permission beyond reading and renaming files in the folder you point at.
@@ -180,7 +180,7 @@ What this skill adds is the diagnosis step an agent needs: one scan across the w
 - NFC only. NFKC and NFKD change the name itself, so they are never used.
 - Zip files are inspected, never rewritten. Re-pack them yourself after fixing names.
 - git history is not rewritten; only the current index is changed.
-- Windows is unverified. Linux behavior (NFC and NFD side by side) was checked only with a byte-preserving file system simulation in tests, run on macOS. The Linux-only tests run only on Linux; the Ubuntu CI job has no passing run yet.
+- Windows is unverified. Linux behavior (NFC and NFD side by side) was checked only with a byte-preserving file system simulation in tests, run on macOS. The Linux-only tests are skipped on macOS and run only on Linux (the CI Ubuntu job); this README makes no claim about their result.
 - Percent-encoded URLs and words in prose are not resolved as references.
 - HFS+ keeps names decomposed, so a rename to NFC there fails and is rolled back.
 - Scripts refuse to overwrite an existing JSON file they did not write (`error: refusing to overwrite ...`, exit 2). Pick another `--out` name.
