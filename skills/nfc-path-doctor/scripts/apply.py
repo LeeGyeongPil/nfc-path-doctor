@@ -306,6 +306,26 @@ def recheck(plan: dict, lang: str) -> str:
     return n.msg(lang, "apply_recheck", code=report["exit_code"], summary=summary)
 
 
+def guard_pending_undo(undo_out: str | None, plan_path: str) -> None:
+    """Refuse to replace an undo file that still holds the only record for changes not yet reverted."""
+    if not undo_out or not os.path.isfile(undo_out):
+        return
+    try:
+        if os.path.samefile(undo_out, plan_path):
+            return   # the undo file being applied right now is consumed by this run
+    except OSError:
+        return
+    try:
+        old = load_plan(undo_out)
+    except n.ToolError:
+        return
+    if old.get("target") != "undo" or not old["actions"]:
+        return
+    if check_state(bytes.fromhex(old["root_hex"]), old["actions"]):
+        return   # already used (steps no longer match the disk): safe to overwrite
+    raise n.ToolError("err_undo_pending", path=n.disp(undo_out))
+
+
 def write_json(path: str, obj: object) -> None:
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(n.dumps(obj))
@@ -344,6 +364,7 @@ def run(args: object, lang: str) -> int:
     undo_out = getattr(args, "undo_out") or (None if getattr(args, "undo") else
                                              os.path.join(os.path.dirname(os.path.abspath(plan_path)), "undo.json"))
     n.guard_output(undo_out)   # fail before anything is renamed, not after
+    guard_pending_undo(undo_out, plan_path)
     out.write(n.msg(lang, "apply_run_header", n=len(steps)) + "\n")
     done: list[Step] = []
     try:

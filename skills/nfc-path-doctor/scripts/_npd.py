@@ -71,6 +71,9 @@ MESSAGES: dict[str, dict[str, str]] = {
         "err_plan_or_undo": "give exactly one of PLAN or --undo UNDO",
         "err_out_exists": "refusing to overwrite {path}: it exists and is not a file written by these scripts "
                           "(pass another file name, or delete or move it first)",
+        "err_undo_pending": "refusing to overwrite {path}: it still holds the undo record of an earlier --apply that "
+                            "has not been reverted (pass --undo-out with another file name, run --undo on it "
+                            "first, or move the file away)",
         "plan_bad_json": "not valid JSON",
         "plan_bad_version": "unsupported or missing version",
         "plan_bad_target": "target must be NFC or undo",
@@ -243,6 +246,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "err_plan_or_undo": "PLAN 과 --undo UNDO 중 정확히 하나만 주세요",
         "err_out_exists": "{path} 을(를) 덮어쓰지 않습니다: 이미 있고 이 스크립트가 쓴 파일이 아닙니다 "
                           "(다른 파일 이름을 주거나, 먼저 지우거나 옮기세요)",
+        "err_undo_pending": "{path} 을(를) 덮어쓰지 않습니다: 아직 되돌리지 않은 이전 --apply 의 undo 기록이 들어 있습니다 "
+                            "(--undo-out 으로 다른 파일 이름을 주거나, 먼저 --undo 로 되돌리거나, 파일을 옮기세요)",
         "plan_bad_json": "올바른 JSON 이 아닙니다",
         "plan_bad_version": "지원하지 않거나 빠진 version 입니다",
         "plan_bad_target": "target 은 NFC 또는 undo 여야 합니다",

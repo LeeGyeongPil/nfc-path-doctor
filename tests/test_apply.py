@@ -419,3 +419,44 @@ def test_foreign_undo_file_is_refused_before_any_announcement(site, tmp_path, ca
     assert code == 2 and err
     assert "step(s)" not in out and out == ""
     assert foreign.read_text() == "mine" and snapshot(site) == before
+
+
+def _second_site(tmp_path: Path) -> Path:
+    return make_demo.build_site(tmp_path / "site2")
+
+
+def test_second_apply_does_not_overwrite_a_pending_undo_file(site, tmp_path, capsys):
+    plan1 = make_plan(site, tmp_path / "p.json", "--no-git")
+    assert run_cli(apply_mod, [str(plan1), "--apply", "--lang", "en"], capsys)[0] == 0
+    site2 = _second_site(tmp_path)
+    plan2 = make_plan(site2, tmp_path / "q.json", "--no-git")
+    undo = tmp_path / "undo.json"
+    kept = undo.read_bytes()
+    before = snapshot(site2)
+    capsys.readouterr()
+    code, out, err = run_cli(apply_mod, [str(plan2), "--apply", "--lang", "en"], capsys)
+    assert code == 2 and "--undo-out" in err and "--undo" in err and out == ""
+    assert snapshot(site2) == before and undo.read_bytes() == kept
+    assert json.loads(undo.read_text())["root"] == str(site)
+    code, _, err = run_cli(apply_mod, [str(plan2), "--apply", "--lang", "ko"], capsys)
+    assert code == 2 and "덮어쓰지 않습니다" in err
+
+
+def test_second_apply_with_undo_out_succeeds(site, tmp_path, capsys):
+    plan1 = make_plan(site, tmp_path / "p.json", "--no-git")
+    assert run_cli(apply_mod, [str(plan1), "--apply", "--lang", "en"], capsys)[0] == 0
+    site2 = _second_site(tmp_path)
+    plan2 = make_plan(site2, tmp_path / "q.json", "--no-git")
+    other = tmp_path / "undo-2.json"
+    assert run_cli(apply_mod, [str(plan2), "--apply", "--undo-out", str(other), "--lang", "en"], capsys)[0] == 0
+    assert other.exists() and (tmp_path / "undo.json").exists()
+
+
+def test_apply_again_after_undo_overwrites_the_used_undo_file(site, tmp_path, capsys):
+    plan1 = make_plan(site, tmp_path / "p.json", "--no-git")
+    assert run_cli(apply_mod, [str(plan1), "--apply", "--lang", "en"], capsys)[0] == 0
+    undo = tmp_path / "undo.json"
+    assert run_cli(apply_mod, ["--undo", str(undo), "--apply", "--lang", "en"], capsys)[0] == 0
+    plan2 = make_plan(site, tmp_path / "p2.json", "--no-git")
+    assert run_cli(apply_mod, [str(plan2), "--apply", "--lang", "en"], capsys)[0] == 0
+    assert json.loads(undo.read_text())["actions"]

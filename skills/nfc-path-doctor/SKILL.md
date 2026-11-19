@@ -40,6 +40,7 @@ Run `python3 <skill-dir>/scripts/show.py --file names.txt --out names.json` (or 
 
 1. `python3 <skill-dir>/scripts/apply.py plan.json` lists the steps and changes nothing.
 2. `python3 <skill-dir>/scripts/apply.py plan.json --apply` renames, replaces git index entries, rewrites links, writes `undo.json` and re-scans. Then show `git -C <repo folder> status --porcelain`.
+   If `undo.json` still holds an unreverted earlier undo record, `--apply` exits 2 before changing anything; use `--undo-out other.json` or undo first.
 3. Undo: `python3 <skill-dir>/scripts/apply.py --undo undo.json --apply`.
 
 ## Rules
