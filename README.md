@@ -112,8 +112,9 @@ Exit codes of `scan.py`: `0` clean, `1` fixable findings, `3` a human decision i
 | Tasks solved without it (baseline) | 0/5 |
 | Mean score gain (Δ) | +0.70 |
 | Tasks that catch a broken script | 5/5 |
+| Codex CLI | not verified |
 
-Measured 2026-11-20 with Claude Code 2.1.322 · sonnet · 3 runs per case
+Measured 2026-11-20 with Claude Code 2.1.322 · sonnet · 3 runs per case · codex-cli 0.154.0
 <!-- skill-eval:end -->
 
 ## How it works

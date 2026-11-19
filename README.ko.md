@@ -112,8 +112,9 @@ python3 skills/nfc-path-doctor/scripts/apply.py --undo undo.json --apply
 | 스킬 없이 푼 작업(기준선) | 0/5 |
 | 평균 점수 차이(Δ) | +0.70 |
 | 가짜 스크립트를 잡아낸 비율 | 5/5 |
+| Codex CLI | 미검증 |
 
-Claude Code 2.1.322 · sonnet · 케이스마다 3회 · 2026-11-20 측정
+Claude Code 2.1.322 · sonnet · 케이스마다 3회 · 2026-11-20 측정 · codex-cli 0.154.0
 <!-- skill-eval:end -->
 
 ## 동작 원리
