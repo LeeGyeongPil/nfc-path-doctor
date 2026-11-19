@@ -1,6 +1,6 @@
 [project]
 name = "nfc-path-doctor"
-version = "0.1.1"
+version = "0.1.2"
 description = "Agent skill that diagnoses and safely fixes Unicode NFC/NFD file name mismatches across the file system, git index, zip files and text references."
 license = { text = "MIT" }
 requires-python = ">=3.10"
