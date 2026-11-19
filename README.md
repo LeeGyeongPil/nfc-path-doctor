@@ -37,7 +37,7 @@ All of these come from one fact: two names can look identical and still be diffe
 /plugin install nfc-path-doctor@nfc-path-doctor-skill
 ```
 
-**Other agents (Agent Skills standard)** — copy `skills/nfc-path-doctor` into the agent's skills folder (for example `.agents/skills/` in a project). Codex CLI is one of them and passed the task check below.
+**Other agents (Agent Skills standard)** — copy `skills/nfc-path-doctor` into the agent's skills folder (for example `.agents/skills/` in a project).
 
 **Quick start without an agent** — clone the repository and run the scripts directly:
 
@@ -110,11 +110,10 @@ Exit codes of `scan.py`: `0` clean, `1` fixable findings, `3` a human decision i
 | Stays quiet when it should not | 12/12 |
 | Tasks solved with the skill | 5/5 |
 | Tasks solved without it (baseline) | 0/5 |
-| Mean score gain (Δ) | +0.73 |
+| Mean score gain (Δ) | +0.70 |
 | Tasks that catch a broken script | 5/5 |
-| Codex CLI | 5/5 tasks · verified |
 
-Measured 2026-11-19 with Claude Code 2.1.322 · sonnet · 3 runs per case · codex-cli 0.154.0
+Measured 2026-11-20 with Claude Code 2.1.322 · sonnet · 3 runs per case
 <!-- skill-eval:end -->
 
 ## How it works

@@ -37,7 +37,7 @@ Python 3.10+ 표준 라이브러리만 씁니다. 네트워크 접근이 없습�
 /plugin install nfc-path-doctor@nfc-path-doctor-skill
 ```
 
-**다른 에이전트(Agent Skills 표준)** — `skills/nfc-path-doctor` 를 에이전트의 스킬 폴더(예: 프로젝트의 `.agents/skills/`)에 복사합니다. Codex CLI 도 그중 하나이며 아래 작업 검증을 통과했습니다.
+**다른 에이전트(Agent Skills 표준)** — `skills/nfc-path-doctor` 를 에이전트의 스킬 폴더(예: 프로젝트의 `.agents/skills/`)에 복사합니다.
 
 **에이전트 없이 빠르게 시작하기** — 저장소를 받아 스크립트를 직접 실행합니다.
 
@@ -110,11 +110,10 @@ python3 skills/nfc-path-doctor/scripts/apply.py --undo undo.json --apply
 | 필요 없을 때 안 불림 | 12/12 |
 | 스킬로 푼 작업 | 5/5 |
 | 스킬 없이 푼 작업(기준선) | 0/5 |
-| 평균 점수 차이(Δ) | +0.73 |
+| 평균 점수 차이(Δ) | +0.70 |
 | 가짜 스크립트를 잡아낸 비율 | 5/5 |
-| Codex CLI | 작업 5/5 통과 · 확인됨 |
 
-Claude Code 2.1.322 · sonnet · 케이스마다 3회 · 2026-11-19 측정 · codex-cli 0.154.0
+Claude Code 2.1.322 · sonnet · 케이스마다 3회 · 2026-11-20 측정
 <!-- skill-eval:end -->
 
 ## 동작 원리
