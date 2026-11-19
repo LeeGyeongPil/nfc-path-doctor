@@ -122,4 +122,75 @@ def collision_repo(tmp_path) -> Path:
     return make_demo.build_index_collision(tmp_path / "dup")
 
 
+# ---------------------------------------------------------------------------
+# GitHub Actions annotations
+# ---------------------------------------------------------------------------
+# A run's annotations are listed on the run page and by `gh run view` without downloading the job log, so a failing
+# CI job says which test failed and why, and the ubuntu job says whether the Linux-only tests really ran (not skipped).
+
+LINUX_ONLY_SKIP_WORDS = ("APFS", "case-insensitive")      # skip reasons of the tests that only run on Linux
+
+
+def gh_escape(text: str, prop: bool = False) -> str:
+    """Escape a value for a workflow command (::error ...::message); properties also escape ':' and ','."""
+    text = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    return text.replace(":", "%3A").replace(",", "%2C") if prop else text
+
+
+def gh_command(kind: str, message: str, **props: object) -> str:
+    """One workflow command line, e.g. ::error file=tests/x.py,line=3,title=t::message."""
+    args = ",".join(f"{k}={gh_escape(str(v), prop=True)}" for k, v in props.items() if v is not None)
+    return f"::{kind}{' ' + args if args else ''}::{gh_escape(message)}"
+
+
+def _reports(stats: dict, key: str) -> list:
+    return [r for r in stats.get(key, []) if getattr(r, "when", None) is not None]   # test reports only, no warnings
+
+
+def _failure_message(report) -> str:
+    crash = getattr(getattr(report, "longrepr", None), "reprcrash", None)
+    text = getattr(crash, "message", None) or str(getattr(report, "longrepr", "") or "failed")
+    return text.strip()[:1000]
+
+
+def _skip_reason(report) -> str:
+    lr = getattr(report, "longrepr", None)
+    reason = lr[2] if isinstance(lr, tuple) and len(lr) == 3 else str(lr or "")
+    return reason.removeprefix("Skipped: ")
+
+
+def ci_annotations(stats: dict, platform: str, python: str) -> list[str]:
+    """Workflow commands for a finished test session: one ::error per failure, one ::notice summary, and a
+    ::warning if a Linux-only test was skipped on Linux (the file system there should hold both name forms)."""
+    lines = []
+    for key in ("failed", "error"):
+        for r in _reports(stats, key):
+            path, lineno, _ = getattr(r, "location", (None, None, None))
+            lines.append(gh_command("error", _failure_message(r), file=path,
+                                    line=None if lineno is None else lineno + 1, title=f"{key}: {r.nodeid}"))
+    skipped = [(r.nodeid, _skip_reason(r)) for r in _reports(stats, "skipped")]
+    counts = {k: len(_reports(stats, k)) for k in ("passed", "failed", "error", "skipped")}
+    summary = f"{platform} Python {python}: " + ", ".join(f"{v} {k}" for k, v in counts.items())
+    detail = "".join(f"\nSKIPPED {node}: {why}" for node, why in skipped)
+    lines.append(gh_command("notice", summary + detail, title="pytest summary"))
+    linux_only = [node for node, why in skipped if any(w in why for w in LINUX_ONLY_SKIP_WORDS)]
+    if platform.startswith("linux") and linux_only:
+        lines.append(gh_command("warning", "Linux-only tests were skipped on Linux: " + ", ".join(linux_only),
+                                title="Linux-only tests did not run"))
+    return lines
+
+
+def annotations_enabled(env) -> bool:
+    """On in GitHub Actions; NPD_TEST_ANNOTATIONS=1 shows the same lines in a local run (to preview them)."""
+    return env.get("GITHUB_ACTIONS") == "true" or env.get("NPD_TEST_ANNOTATIONS") == "1"
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    if not annotations_enabled(os.environ):                   # 보통의 로컬 실행에서는 아무것도 덧붙이지 않는다
+        return
+    python = ".".join(str(x) for x in sys.version_info[:3])
+    for line in ci_annotations(terminalreporter.stats, sys.platform, python):
+        terminalreporter.write_line(line)
+
+
 __all__ = ["apply_mod", "make_demo", "scan_mod", "show_mod"]
