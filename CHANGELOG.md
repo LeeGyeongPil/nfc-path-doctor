@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-11-19
+
+Version 0.1.3 was never released; its changes are part of 0.1.4.
+
+### Added
+
+- `scan.py` prints a `checked:` line (names on disk, git index, text files, zips) and ends with a `Done:` line, so an agent can answer from the printed output alone. When the table is cut at `--max-rows`, the `Done:` line says "the table shows N of M findings" and points to `--out` (or a larger `--max-rows`); the "more finding(s) not shown" line names `report.json` when `--out` was given.
+- A folder with no non-ASCII name and no zip prints `Nothing here to examine` with the usual cause, instead of a bare "no problems" result. With `--no-git` it prints a note that the git index was not checked instead.
+- `report.json` stats gain `entries_non_ascii` and `index_non_ascii`.
+
+### Changed
+
+- The scan root defaults to the current folder when omitted.
+- `--max-rows` below 0 is a usage error (exit 2).
+- `--lang ko` also localizes the `usage:` prefix and section titles of `--help` and usage errors.
+- `SKILL.md` step 2: answer from the printed output right away, without extra commands; read `report.json` once only if the output says findings are not shown.
+- README (en/ko): "How it works" explains the `Done:` line; the Linux note no longer states a CI result. Hero screenshots re-captured.
+
 ## [0.1.2] - 2026-11-19
 
 ### Changed
@@ -37,3 +55,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/LeeGyeongPil/nfc-path-doctor/releases/tag/v0.1.0
 [0.1.1]: https://github.com/LeeGyeongPil/nfc-path-doctor/compare/v0.1.0...v0.1.1
 [0.1.2]: https://github.com/LeeGyeongPil/nfc-path-doctor/compare/v0.1.1...v0.1.2
+[0.1.4]: https://github.com/LeeGyeongPil/nfc-path-doctor/compare/v0.1.2...v0.1.4

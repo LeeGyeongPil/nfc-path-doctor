@@ -303,7 +303,7 @@ wheels = [
 
 [[package]]
 name = "nfc-path-doctor"
-version = "0.1.2"
+version = "0.1.4"
 source = { virtual = "." }
 
 [package.dev-dependencies]
