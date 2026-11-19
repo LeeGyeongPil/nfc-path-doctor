@@ -97,6 +97,8 @@ python3 skills/nfc-path-doctor/scripts/apply.py --undo undo.json --apply
 ![apply.py --apply output and git status showing a clean rename](docs/images/04-apply.png)
 *After `--apply`, `git status --porcelain` shows a rename (`R`) to the NFC path, not a deleted and an untracked file. Only `자료.txt` is tracked in the demo repo, so your `git status` also lists the other demo files as untracked (`??`); the screenshot shows the tracked line only, and the undo file path is shortened to `<tmp>`. Zip files are only inspected, so the re-check still reports them (`re-check: exit 1, zip_nfd_name 2, zip_legacy_name 1`).*
 
+`undo.json` is written next to the plan. If that file still holds the undo record of an earlier `--apply` that has not been reverted (for example a second plan from the same folder), `apply.py` exits `2` before changing anything. Pass `--undo-out other.json`, run `--undo` first, or move the file away.
+
 Exit codes of `scan.py`: `0` clean, `1` fixable findings, `3` a human decision is needed, `2` input error. `apply.py`: `0` ok (dry-run included), `1` plan is stale and nothing changed, `2` input error, `4` a step failed and finished steps were rolled back. Field details are in [`skills/nfc-path-doctor/references/formats.md`](skills/nfc-path-doctor/references/formats.md).
 
 ## Verified behavior

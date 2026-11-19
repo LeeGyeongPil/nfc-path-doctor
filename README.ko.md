@@ -97,6 +97,8 @@ python3 skills/nfc-path-doctor/scripts/apply.py --undo undo.json --apply
 ![apply.py --apply 출력과 깔끔한 이름 변경으로 보이는 git status](docs/images/04-apply.ko.png)
 *`--apply` 뒤 `git status --porcelain` 은 삭제 + untracked 가 아니라 NFC 경로로의 이름 변경(`R`)으로 보입니다. 데모 저장소는 `자료.txt` 하나만 추적하므로 직접 실행하면 나머지 데모 파일이 untracked(`??`)로 함께 나옵니다. 스크린샷은 추적 중인 줄만 보여 주고, undo 파일 경로는 `<tmp>` 로 줄였습니다. zip 은 검사만 하므로 재검사에는 여전히 남습니다(`재검사: 종료 코드 1, zip_nfd_name 2, zip_legacy_name 1`).*
 
+`undo.json` 은 계획 파일 옆에 쓰입니다. 그 파일에 아직 되돌리지 않은 이전 `--apply` 의 undo 기록이 남아 있으면(예: 같은 폴더의 두 번째 계획) `apply.py` 는 아무것도 바꾸기 전에 종료 코드 `2` 로 멈춥니다. `--undo-out other.json` 을 주거나, 먼저 `--undo` 로 되돌리거나, 파일을 옮기세요.
+
 `scan.py` 종료 코드: `0` 깨끗함, `1` 고칠 수 있는 발견, `3` 사람 결정 필요, `2` 입력 오류. `apply.py`: `0` 정상(dry-run 포함), `1` 계획이 오래되어 아무것도 바꾸지 않음, `2` 입력 오류, `4` 한 단계가 실패해 끝난 단계를 되돌림. 필드 설명은 [`skills/nfc-path-doctor/references/formats.md`](skills/nfc-path-doctor/references/formats.md) 에 있습니다.
 
 ## 검증된 동작

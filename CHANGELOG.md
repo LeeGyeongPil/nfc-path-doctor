@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-11-20
+
+### Fixed
+
+- `apply.py --apply` no longer overwrites an undo file that still records changes not yet reverted (for example a second plan applied from the same folder); it exits 2 and points to `--undo-out` or `--undo`.
+
 ## [0.1.4] - 2026-11-19
 
 Version 0.1.3 was never released; its changes are part of 0.1.4.
@@ -56,3 +62,4 @@ Version 0.1.3 was never released; its changes are part of 0.1.4.
 [0.1.1]: https://github.com/LeeGyeongPil/nfc-path-doctor/compare/v0.1.0...v0.1.1
 [0.1.2]: https://github.com/LeeGyeongPil/nfc-path-doctor/compare/v0.1.1...v0.1.2
 [0.1.4]: https://github.com/LeeGyeongPil/nfc-path-doctor/compare/v0.1.2...v0.1.4
+[0.1.5]: https://github.com/LeeGyeongPil/nfc-path-doctor/compare/v0.1.4...v0.1.5
