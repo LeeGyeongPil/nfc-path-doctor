@@ -108,7 +108,7 @@ Exit codes of `scan.py`: `0` clean, `1` fixable findings, `3` a human decision i
 | Stays quiet when it should not | 12/12 |
 | Tasks solved with the skill | 5/5 |
 | Tasks solved without it (baseline) | 0/5 |
-| Mean score gain (Δ) | +0.68 |
+| Mean score gain (Δ) | +0.73 |
 | Tasks that catch a broken script | 5/5 |
 | Codex CLI | 5/5 tasks · verified |
 
@@ -180,7 +180,7 @@ What this skill adds is the diagnosis step an agent needs: one scan across the w
 - NFC only. NFKC and NFKD change the name itself, so they are never used.
 - Zip files are inspected, never rewritten. Re-pack them yourself after fixing names.
 - git history is not rewritten; only the current index is changed.
-- Windows is unverified. Linux behavior (NFC and NFD side by side) was checked only with a byte-preserving file system simulation in tests, run on macOS. The Linux-only tests are conditional and run only on Linux; they have not been run in a Linux container or CI yet.
+- Windows is unverified. Linux behavior (NFC and NFD side by side) was checked only with a byte-preserving file system simulation in tests, run on macOS. The Linux-only tests run only on Linux; the Ubuntu CI job has no passing run yet.
 - Percent-encoded URLs and words in prose are not resolved as references.
 - HFS+ keeps names decomposed, so a rename to NFC there fails and is rolled back.
 - Scripts refuse to overwrite an existing JSON file they did not write (`error: refusing to overwrite ...`, exit 2). Pick another `--out` name.
