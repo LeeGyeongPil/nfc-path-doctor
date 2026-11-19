@@ -10,6 +10,7 @@ on:
 jobs:
   scripts:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20                    # the suite takes about a minute; a hung job must not run for 6 hours
     strategy:
       fail-fast: false
       matrix:
@@ -29,7 +30,9 @@ jobs:
           uv run python -c "import locale, sys, unicodedata; print('fs encoding', sys.getfilesystemencoding(), '| locale', locale.getpreferredencoding(False), '| unicode', unicodedata.unidata_version)"
           git --version
           echo "LANG=${LANG:-} LC_ALL=${LC_ALL:-} TMPDIR=${TMPDIR:-}"
-      - name: tests (-ra lists every skip and failure reason)
+      # -ra lists every skip and failure reason in the log; tests/conftest.py also leaves annotations (one per
+      # failure, a pass/skip summary, a warning if a Linux-only test was skipped on Linux) that show without the log.
+      - name: tests
         run: uv run pytest -q -ra
       - name: every bundled script answers --help
         run: |
@@ -39,6 +42,7 @@ jobs:
           done
   spec:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
